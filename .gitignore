@@ -1,0 +1,12 @@
+.venv/
+.e1-venv/
+__pycache__/
+.ruff_cache/
+cache/
+resources/
+outputs/
+dist/
+*.pt
+*.pth
+*.safetensors
+*.egg-info/
