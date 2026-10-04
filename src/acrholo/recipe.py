@@ -21,7 +21,14 @@ REFERENCE_SHA256 = {
 }
 
 
-def feature_recipe() -> dict:
+def feature_recipe(*, query_e1: bool = False) -> dict:
+    if query_e1:
+        return {
+            "representation": "acrholo-query-e1-v1",
+            "dimension": 2560,
+            "conditioning": "query-only",
+            "e1": e1_metadata(),
+        }
     return {
         "representation": "acrholo-frozen-four-branch-v1",
         "dimension": 12887,

@@ -469,7 +469,7 @@ def main() -> None:
     )
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--cache", type=Path, required=True)
-    parser.add_argument("--alignments", type=Path, required=True)
+    parser.add_argument("--alignments", type=Path, help="Omit for query-only E1 extraction")
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--weights", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)

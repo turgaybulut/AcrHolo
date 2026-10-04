@@ -11,7 +11,7 @@ The central idea is to represent each query in the context of its homologs. Rela
 
 The four branches form a single feature vector used by a class-balanced logistic classifier. The protein encoders remain frozen during classifier training. A separate reserved training partition supplies probability calibration and a decision threshold targeting 95% positive recall; evaluation labels do not enter fitting, calibration or threshold selection.
 
-The implementation supports reference preparation, feature extraction, training, family-grouped cross-validation and prediction. Encoder outputs are cached, and feature archives can be reused for CPU training and scoring. Train AcrHolo on your labeled dataset, then use the resulting checkpoint to classify new sequences supplied in FASTA or CSV format.
+The implementation supports reference preparation, feature extraction, training, family-grouped cross-validation, branch ablations and prediction. Encoder outputs are cached, and feature archives can be reused for CPU training and scoring. Train AcrHolo on your labeled dataset, then use the resulting checkpoint to classify new sequences supplied in FASTA or CSV format.
 
 ## Setup
 
@@ -66,7 +66,26 @@ Predictions contain `id,score,probability,prediction`. Choose fresh output paths
 uv run acrholo cross-validate --input training.csv --features outputs/training.npz --output outputs/cv_predictions.csv --mmseqs /path/to/mmseqs
 ```
 
-Add `--families training_families.csv` to training or cross-validation to use existing `id,family` assignments. For available options and a numerical check:
+Add `--families training_families.csv` to training, cross-validation or ablation to use existing `id,family` assignments.
+
+## Branch ablations
+
+Run the full model, removal of each branch and each branch alone on identical family-held-out folds. Every configuration refits its scaler, classifier and calibrator, with the reserved partition excluded throughout. The command uses the full training feature archive and runs on CPU.
+
+```bash
+uv run acrholo ablate --input training.csv --features outputs/training.npz --output outputs/ablations --families training_families.csv
+```
+
+To include the query-only E1 control, extract its separate archive using the same training IDs, sequences and order, then supply it with `--query-features`:
+
+```bash
+uv run acrholo query-e1 --input training.csv --output outputs/query-e1.npz --e1-python .e1-venv/bin/python --e1-source resources/E1 --e1-weights resources/E1-600m
+uv run acrholo ablate --input training.csv --features outputs/training.npz --query-features outputs/query-e1.npz --output outputs/ablations-with-control --families training_families.csv
+```
+
+Each fresh output directory contains fold metrics, held predictions, calibration rows, equal-weight fold summaries and absolute/paired intervals. Intervals use 10,000 shared family-bootstrap draws conditional on the fitted models and calibration; they exclude model-selection and refitting uncertainty. Bootstrap requires label-homogeneous families. Failed recall policies remain explicit, with undefined operating-point metrics. These development analyses do not select a replacement predictor or provide independent validation.
+
+For available options and a numerical check:
 
 ```bash
 uv run acrholo --help
